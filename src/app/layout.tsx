@@ -57,7 +57,7 @@ export const metadata: Metadata = {
     description:
       "Portfolio of Stoneybro (Zion Livingstone), a Solidity and frontend developer building secure, scalable Web3 applications. Focused on smart contracts, account abstraction, and modern frontend engineering.",
     creator: "@z__stone",
-    images: ["/og-image.png"],
+    images: ["https://stoneybro.dev/og-image.png"],
   },
   icons: {
     icon: ["/favicon.ico"],
