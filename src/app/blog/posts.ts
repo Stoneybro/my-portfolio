@@ -14,7 +14,7 @@ export const posts: Post[] = [
     date: "Sep 2025",
     image:"csm.png",
     excerpt:
-      "Smart wallets are the future of blockchain interaction. Just as MetaMask defined the EOA era, smart wallets will define what comes next. Learn the fundamentals of ERC-4337 and start building custom wallets that enforce rules, automate flows, and adapt to specific use cases.",
+      "Smart wallets unlock automation and flexibility onchain. This guide covers ERC-4337 and how to build  smart wallets for any use case.",
 
     mdxPath: "understanding-custom-smart-wallets.mdx",
   },
