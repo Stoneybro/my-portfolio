@@ -1,75 +1,95 @@
 
-
+**Prerequisite**: You should have a good understanding of <a href="https://ethereum.org/developers/docs/accounts/" target="_blank" rel="noopener noreferrer" style={{textDecoration:"underline"}}>Ethereum accounts</a> and <a href="https://ethereum.org/developers/docs/transactions/" target="_blank" rel="noopener noreferrer" style={{textDecoration:"underline"}}> transactions.</a>
+<div style={{ textAlign: 'center', margin: '2rem 0' }}>
+  <img src="/csm.png" alt="Flow diagram" style={{ maxWidth: '100%' }} />
+</div>
 ## Introduction
 <br />
 
-There are two main types of accounts on Ethereum: **Externally Owned Accounts (EOAs)** and **Smart Accounts**. They both hold assets and interact with contracts, but they differ fundamentally in a few ways:
+There are two main types of  accounts on Ethereum: **Externally Owned Accounts (EOAs)** and **Smart Accounts**. They both hold assets and interact with contracts, but they differ fundamentally in a few ways:
+<br />
+**EOAs** are the traditional account type.
+
+They’re created from key pairs and controlled entirely by private keys. With a private key, an EOA can directly initiate and sign transactions.
+<br />
+**Smart Accounts** on the other hand, are smart contracts deployed on-chain.
+
+Unlike EOAs, they cannot initiate transactions on their own. Instead, they respond to transactions that are sent to them.
+<br />
+What makes Smart Accounts powerful is their programmability. Developers can encode rules such as:
+
+- spending limits
+
+- multi-signature approvals
+
+- automated actions
 
 <br />
 
-- **Smart accounts** are essentially smart contracts that are deployed onchain, while EOAs are created from key pairs
-
-- **EOAs** are controlled with private keys with which they can initiate and sign transactions. Smart Accounts cannot initiate transactions on their own.
-
-- **Smart Accounts** are programmable, they can enforce custom rules such as spending limits and automated actions. EOAs are not programmable.
+Smart Accounts replicate everything an EOA can do while adding layers of flexibility and customization through code.
 
 <br />
 
-Smart accounts replicate all of the functionality of EOAs and extend it through programmability.
+To standardize how these accounts interact, Ethereum introduced **ERC-4337**, the Account Abstraction standard. This defines how transactions are validated, executed, and paid for.
 
 <br />
 
-Ethereum introduced **ERC-4337**, the standard for Account Abstraction, which defines how smart contracts interact.
+**Custom smart wallets** are built on top of these Smart Accounts.
+Just as apps like MetaMask provide an interface for EOAs, custom smart wallets provide an interface for Smart Accounts, tailored to specific use cases or user experiences.
 
 <br />
 
-Custom smart wallets are implementations of smart accounts that leverage their programmability. Custom smart wallets provide an interface for smart accounts the way wallet apps like MetaMask manage EOAs.
+In the next section, we’ll dive into the mechanics of Smart Accounts under the ERC-4337 standard.
 
 <br />
-
-In the next section we comprehensively talk about how smart accounts work according to the ERC-4337 standards.
-
-<br />
-<br />
-
 ---
 
 <br />
 
 ## Core Mechanics
 
-The ERC-4337 Account Abstraction standard is the foundation of modern smart wallets. It defines how smart accounts process transactions without relying on traditional externally owned accounts (EOAs). To understand how these wallets work, we first need to cover some supporting concepts.
+The ERC-4337 Account Abstraction standard is the foundation of modern smart wallets. It defines how smart accounts process transactions without relying on traditional externally owned accounts (EOAs). To understand how these wallets work, we first need to cover some concepts.
 
-<br />
-<br />
 
 ### Key Concepts
+<br />
+**UserOperations (UserOps)**: EOAs send transactions that specify a recipient, value, and optional data. Smart accounts instead send UserOperations, a higher-level request format defined by ERC-4337. A UserOp contains similar fields but adds flexibility, such as batching multiple calls into one submission and alternative forms of gas payment.
 
 <br />
 
-**UserOperations (UserOps)**: In EOAs, users send transactions. In smart accounts, they send UserOperations. A UserOps is like a transaction envelope but with extra flexibility. For example, it includes a `callData` field that can batch multiple actions into one submission.
 
-<br />
+```json
+//EOA transactions
+{
+  "to": "0xRecipient",
+  "value": "1000000000000000000",
+  "data": "0x...",
+  "gas": 21000,
+  "nonce": 1,
+  "chainId": 1
+}
+```
 
-```solidity
-struct UserOperation {
-    address sender;
-    uint256 nonce;
-    bytes initCode;
-    bytes callData;
-    uint256 callGasLimit;
-    uint256 verificationGasLimit;
-    uint256 preVerificationGas;
-    uint256 maxFeePerGas;
-    uint256 maxPriorityFeePerGas;
-    bytes paymasterAndData;
-    bytes signature;
+```json
+//Smart Account User Operation
+{
+  "sender": "0xSmartAccount",
+  "nonce": 1,
+  "initCode": "0x...",
+  "callData": "0x...",
+  "callGasLimit": 100000,
+  "verificationGasLimit": 100000,
+  "preVerificationGas": 21000,
+  "maxFeePerGas": "1000000000",
+  "maxPriorityFeePerGas": "1000000000",
+  "paymasterAndData": "0x...",
+  "signature": "0x..."
 }
 ```
 
 <br />
 
-**Bundlers**: Unlike EOAs, UserOps aren't sent directly to the blockchain. Instead, they go to a bundler, a specialized node service. Bundlers collect many UserOps, bundle them into a transaction, and submit them to the EntryPoint contract. They play the same role as miners/validators do for regular transactions, but specifically for smart accounts.
+**Bundlers**: Unlike EOAs, UserOps aren't sent directly to the blockchain. Instead, they go to a bundler, a specialized node service. Bundlers collect many UserOps, bundle them into a transaction, and submit them to the EntryPoint contract. 
 
 <br />
 
@@ -90,12 +110,10 @@ struct UserOperation {
 
 A typical smart account implements three core functions:
 
-<br />
-<br />
 
 ### 1. ValidateUserOp
 
-It ensures that a submitted UserOperation is valid. The developer decides what "valid" means—it could be a simple check recovering an ECDSA signature or it could be a more advanced check that may require multiple signatures, biometrics and social recovery.
+It ensures that a submitted UserOperation is valid. The developer decides what "valid" means, it could be a simple check recovering an ECDSA signature recovery or it could be a more advanced check that may require multiple signatures, biometrics and social recovery.
 
 <br />
 
@@ -105,7 +123,9 @@ function validateUserOp(
     bytes32 userOpHash,
     uint256 missingAccountFunds
 ) external returns (uint256 validationData) {
-    // Verify signature
+    // This is a very simple check to see if the person sending user operations
+    // is the owner of the smart account.
+
     bytes32 hash = userOpHash.toEthSignedMessageHash();
     address recovered = hash.recover(userOp.signature);
     
@@ -123,7 +143,6 @@ function validateUserOp(
 }
 ```
 
-<br />
 <br />
 
 ### 2. Execute
@@ -177,7 +196,7 @@ The transaction flow in ERC-4337 follows a specific sequence:
 
 **1. Build & Sign UserOperation**
 
-A frontend (wallet client/smart wallet) builds a UserOperation and signs it
+A frontend (wallet client/smart wallet) builds a UserOperation and the user signs it.
 
 <br />
 
@@ -209,47 +228,9 @@ Here's a visual representation of the flow:
 
 <br />
 
-```
-┌─────────┐
-│  User   │
-└────┬────┘
-     │ 1. Initiate action
-     ▼
-┌─────────────┐
-│  Frontend   │
-└──────┬──────┘
-       │ 2. Build & sign UserOp
-       ▼
-┌─────────────┐
-│   Bundler   │
-└──────┬──────┘
-       │ 3. Submit bundled UserOps
-       ▼
-┌──────────────────┐
-│    EntryPoint    │
-└────┬─────────┬───┘
-     │         │
-     │ 4a. validateUserOp()
-     ▼         │
-┌──────────────┐   │
-│SmartAccount  │   │
-└──────────────┘   │
-     │         │
-     │ 4b. execute()
-     ▼         │
-┌──────────────┐   │
-│SmartAccount  │   │
-└──────────────┘   │
-                   │ 5. Gas settlement
-                   ▼
-              ┌──────────┐
-              │Paymaster │
-              │    OR    │
-              │  Prefund │
-              └──────────┘
-```
-
-<br />
+<div style={{ textAlign: 'center', margin: '2rem 0' }}>
+  <img src="/txflow.png" alt="Flow diagram" style={{ maxWidth: '100%' }} />
+</div>
 <br />
 
 ---
@@ -258,14 +239,21 @@ Here's a visual representation of the flow:
 
 ## Smart Wallets
 
-The smart wallet is the user-facing client. Its job is to build UserOps, sign them, and send them to bundlers.
+A smart wallet is the user-facing client layer that lets people interact with smart accounts. Its main responsibilities are to:
 
+- Build UserOperations
+
+- Sign them with the account’s key logic
+
+- Send them to bundlers for execution through the EntryPoint
 <br />
-
-- **General-purpose wallets** (e.g., Coinbase Smart Wallet, Alchemy's smart wallet) aim to cover many use cases
-
-- **Custom smart wallets** extend the basic functions of smart accounts with specialized rules or flows — for example, wallets for team-based spending, parental controls, or wallets that only work for gaming
-
+There are two broad categories of smart wallets:
+<br />
+**General-purpose smart wallets**
+These are designed to serve many different use cases, much like MetaMask does for EOAs. Examples include Coinbase Smart Wallet or Alchemy’s Smart Wallet. They provide a familiar, flexible interface but are not deeply specialized.
+<br />
+**Custom smart wallets**
+These go beyond the basics by tailoring smart account behavior to specific needs. For instance, a custom wallet could enforce parental spending limits, manage shared team funds with built-in rules, or optimize gas for gaming transactions.
 <br />
 
 Two libraries currently simplify building custom smart wallets:
@@ -516,11 +504,11 @@ For example:
 
 <br />
 
-- You can keep it simple by only validating an ECDSA signature
+- You can keep validation simple by only checking an ECDSA signature
 
 - You can make it more advanced with multisig checks, social recovery, or time-based restrictions
 
-- You can design it for a specific use case like gaming, team spending, or delayed execution
+- You can design the whole contract for a specific use case like gaming, team spending, or delayed execution
 
 <br />
 
