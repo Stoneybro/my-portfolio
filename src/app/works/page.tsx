@@ -12,6 +12,32 @@ export default function WorksPage() {
       <div className="grid gap-4">
         <Card>
           <CardHeader>
+            <CardTitle>MANTLEPAY</CardTitle>
+            <CardDescription>
+              A web3 payment platform that treats compliance as a first-class primitive, combining AI-driven intent resolution with on-chain execution to attach verifiable compliance data to every transaction.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2 text-neutral-300">
+            <ul className="list-disc space-y-1 pl-5">
+              <li>AI-driven natural language payment scheduling</li>
+              <li>ERC-4337 smart accounts with embedded compliance metadata</li>
+              <li>Universal compliance schema for verifiable payments</li>
+              <li>Automated recurring payments via Chainlink</li>
+              <li>Gasless transactions with paymaster integration</li>
+            </ul>
+          </CardContent>
+          <CardFooter className="flex gap-3">
+            <Button asChild>
+              <a href="https://usemantlepay.vercel.app" target="_blank" rel="noopener noreferrer">Live project</a>
+            </Button>
+            <Button variant="outline" asChild>
+              <a href="https://github.com/Stoneybro/mantlepay" target="_blank" rel="noopener noreferrer">GitHub</a>
+            </Button>
+          </CardFooter>
+        </Card>
+
+        <Card>
+          <CardHeader>
             <CardTitle>KAIROS Smart Wallet </CardTitle>
             <CardDescription>
               A modular ERC-4337 account abstraction wallet that extends standard smart accounts with task-based staking, penalties, and automated payout Mechanism.
