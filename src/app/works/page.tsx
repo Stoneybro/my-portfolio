@@ -54,7 +54,7 @@ export default function WorksPage() {
           </CardContent>
           <CardFooter className="flex gap-3">
             <Button asChild>
-              <a href="https://useKairos.xyz" target="_blank" rel="noopener noreferrer">Live project</a>
+              <a href="https://useKairos.vercel.app" target="_blank" rel="noopener noreferrer">Live project</a>
             </Button>
             <Button variant="outline" asChild>
               <a href="https://github.com/Stoneybro/kairos-frontend" target="_blank" rel="noopener noreferrer">GitHub</a>
