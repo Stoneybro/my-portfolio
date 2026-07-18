@@ -1,23 +1,6 @@
 {
-  "commit": "",
-  "generated": "2026-07-18T23:04:22.316Z",
+  "commit": "1557bb2c7ba3913b389ae745485cb436f66ebebd",
+  "generated": "2026-07-18T23:07:05.138Z",
   "metadata": [
-    {
-      "__outstatic": {
-        "commit": "",
-        "hash": "1772568358",
-        "path": "outstatic/content/works/complyr-private-audit-infrastructure-for-private-onchain-payments.mdx"
-      },
-      "author": {
-        "name": "Livingstone zion",
-        "picture": "https://avatars.githubusercontent.com/u/96637634?v=4"
-      },
-      "collection": "works",
-      "excerpt": "private audit infrastructure for private onchain payments.",
-      "publishedAt": "2026-07-18T23:01:26.253Z",
-      "slug": "complyr-private-audit-infrastructure-for-private-onchain-payments",
-      "status": "draft",
-      "title": "Complyr | private audit infrastructure for private onchain payments."
-    }
   ]
 }
