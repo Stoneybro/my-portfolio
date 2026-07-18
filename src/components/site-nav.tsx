@@ -8,6 +8,7 @@ export function SiteNav() {
     { href: "/", label: "Home", active: pathname === "/" },
     { href: "/works", label: "Work", active: pathname?.startsWith("/works") },
     { href: "/blog", label: "Blog", active: pathname?.startsWith("/blog") },
+    { href: "/papers", label: "Papers", active: pathname?.startsWith("/papers") },
   ];
   return (
     <header className="sticky top-0 z-40 w-full border-b border-neutral-900/80 bg-neutral-950/80 backdrop-blur supports-[backdrop-filter]:bg-neutral-950/60">
