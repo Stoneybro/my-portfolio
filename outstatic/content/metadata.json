@@ -1,11 +1,11 @@
 {
-  "commit": "6d20d1f680090d3a833aefaf13b584f16055e17b",
-  "generated": "2026-07-18T23:08:06.299Z",
+  "commit": "63fd70065d6a5bdf10b740ebeb6ad4c5658f5902",
+  "generated": "2026-07-18T23:08:17.626Z",
   "metadata": [
     {
       "__outstatic": {
-        "commit": "6d20d1f680090d3a833aefaf13b584f16055e17b",
-        "hash": "18831615",
+        "commit": "63fd70065d6a5bdf10b740ebeb6ad4c5658f5902",
+        "hash": "4245765397",
         "path": "outstatic/content/blogs/complyr.mdx"
       },
       "author": {
@@ -16,7 +16,7 @@
       "excerpt": "Confidential audit infrastructure for private on-chain business payments.",
       "publishedAt": "2026-07-18T23:07:15.055Z",
       "slug": "complyr",
-      "status": "draft",
+      "status": "published",
       "title": "Complyr"
     }
   ]
