@@ -1,6 +1,23 @@
 {
-  "commit": "1557bb2c7ba3913b389ae745485cb436f66ebebd",
-  "generated": "2026-07-18T23:07:05.138Z",
+  "commit": "6d20d1f680090d3a833aefaf13b584f16055e17b",
+  "generated": "2026-07-18T23:08:06.299Z",
   "metadata": [
+    {
+      "__outstatic": {
+        "commit": "6d20d1f680090d3a833aefaf13b584f16055e17b",
+        "hash": "18831615",
+        "path": "outstatic/content/blogs/complyr.mdx"
+      },
+      "author": {
+        "name": "Livingstone zion",
+        "picture": "https://avatars.githubusercontent.com/u/96637634?v=4"
+      },
+      "collection": "blogs",
+      "excerpt": "Confidential audit infrastructure for private on-chain business payments.",
+      "publishedAt": "2026-07-18T23:07:15.055Z",
+      "slug": "complyr",
+      "status": "draft",
+      "title": "Complyr"
+    }
   ]
 }
