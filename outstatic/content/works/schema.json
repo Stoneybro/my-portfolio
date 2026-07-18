@@ -1,6 +1,13 @@
 {
   "title": "works",
-  "slug": "works",
   "type": "object",
-  "properties": {}
+  "properties": {
+    "excerpt": {
+      "title": "Excerpt",
+      "description": "",
+      "required": false,
+      "fieldType": "Text",
+      "dataType": "string"
+    }
+  }
 }
