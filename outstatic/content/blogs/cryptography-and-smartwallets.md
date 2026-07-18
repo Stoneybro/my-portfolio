@@ -1,16 +1,24 @@
-For about three months now, I’ve been studying account abstraction and smart wallets. I follow a few people I really respect in the field on X, and one thing I’ve noticed is how much they understand cryptography.
+---
+title: "Cryptography and Smart Wallets"
+publishedAt: "2025-11-01T00:00:00.000Z"
+slug: "cryptography-and-smartwallets"
+excerpt: "A personal deep dive into Elliptic Curve Cryptography (ECC), Diffie-Hellman key exchange, and how they power modern smart wallets."
+status: "published"
+---
 
-I’ve always known that if I wanted to be great at building wallets, I’d have to learn cryptography at some point. But I’ve never been confident in math, so I just accepted that as one of my weak spots.
+For about three months now, I've been studying account abstraction and smart wallets. I follow a few people I really respect in the field on X, and one thing I've noticed is how much they understand cryptography.
 
-While going through Coinbase’s smart wallet contracts, I got fascinated by how WebAuthn worked. I decided to check out some resources and found a YouTube course on Elliptic Curve Cryptography by the University of Tartu. That course completely changed my perspective. The math wasn’t as scary as I thought, it was actually fascinating.
+I've always known that if I wanted to be great at building wallets, I'd have to learn cryptography at some point. But I've never been confident in math, so I just accepted that as one of my weak spots.
 
-So, after spending nearly a week learning and piecing things together, I wanted to write about it, not as a teacher, but as someone figuring it out in real time. This is my first post in this personal style. My goal is to become an expert in smart wallets and cryptography, so I’m hammering the fundamentals until I reach a high-class level.
+While going through Coinbase's smart wallet contracts, I got fascinated by how WebAuthn worked. I decided to check out some resources and found a YouTube course on Elliptic Curve Cryptography by the University of Tartu. That course completely changed my perspective. The math wasn't as scary as I thought, it was actually fascinating.
 
-Special shoutout to Professor Christof Paar for his lectures on YouTube, they’re really good. I plan to complete them all in time, carefully.
+So, after spending nearly a week learning and piecing things together, I wanted to write about it, not as a teacher, but as someone figuring it out in real time. This is my first post in this personal style. My goal is to become an expert in smart wallets and cryptography, so I'm hammering the fundamentals until I reach a high-class level.
+
+Special shoutout to Professor Christof Paar for his lectures on YouTube, they're really good. I plan to complete them all in time, carefully.
 
 ## Diffie-Hellman (DH) Key Exchange
 
-Before getting into elliptic curves, I want to start with something simpler: the Diffie-Hellman key exchange. It’s the foundation of many cryptographic systems.
+Before getting into elliptic curves, I want to start with something simpler: the Diffie-Hellman key exchange. It's the foundation of many cryptographic systems.
 
 At its core, DH lets two people create a shared secret key in public without ever sending the secret itself.
 
@@ -33,7 +41,7 @@ Mathematically, that looks like:
 (G^a)^b = (G^b)^a = G^{ab}
 ```
 
-That’s the idea behind a shared secret key, which can later be used to encrypt communication. Here is a scenario that shows the use:
+That's the idea behind a shared secret key, which can later be used to encrypt communication. Here is a scenario that shows the use:
 
 1. You have a smart wallet and a relayer that sends your transactions to Ethereum.
 2. They need to communicate privately off-chain so nobody can read or change the transaction data.
@@ -49,7 +57,7 @@ So DH allows parties to create a shared secret key for encryption and decryption
 
 ## Making It Secure
 
-The problem with raw DH is that it’s easy to reverse. If someone knows the public number `G` and the result `8`, they can find `a` by computing the logarithm: `log₂(8) = 3`.
+The problem with raw DH is that it's easy to reverse. If someone knows the public number `G` and the result `8`, they can find `a` by computing the logarithm: `log₂(8) = 3`.
 
 To fix that, we use the modulo operator (`%`). If you have written Solidity you already know modulo. It is remainder arithmetic. Modulo gives us finite fields.
 
@@ -57,7 +65,7 @@ To fix that, we use the modulo operator (`%`). If you have written Solidity you 
 4 % 3 = 1
 ```
 
-Why? Because when you can only divide four by three once, and you get a remainder that can't be divided by 3, that’s the value you return when using a modulo operator with an integer (4). A finite field is created where all operations are limited at the value of 4; any operation that returns a value greater than 4 wraps around until there is a remainder.
+Why? Because when you can only divide four by three once, and you get a remainder that can't be divided by 3, that's the value you return when using a modulo operator with an integer (4). A finite field is created where all operations are limited at the value of 4; any operation that returns a value greater than 4 wraps around until there is a remainder.
 
 ```
 (5 + 5) mod 4 = 2
@@ -69,7 +77,7 @@ Instead of computing $G^a$, we compute $(G^a \mod p)$, where `p` is a large prim
 
 This limits operations to a finite field, making it hard to reverse because of something called the **Discrete Logarithm Problem**. Finding a given $G^a \mod p$ is practically impossible when `p` is huge (e.g., 2048 bits).
 
-That’s the backbone of modern cryptography.
+That's the backbone of modern cryptography.
 
 ## Elliptic Curve Cryptography (ECC)
 
@@ -81,7 +89,7 @@ The standard equation is:
 y^2 = x^3 + ax + b
 ```
 
-Each valid `(x, y)` point on the curve satisfies that equation. Just like DH has a generator number `G`, ECC has a **generator point G**, a specific point on the curve that everyone agrees on. It’s one particular valid point on the curve, chosen such that repeatedly adding it to itself cycles through all (or most) of the valid points in the group before returning to the “point at infinity.”
+Each valid `(x, y)` point on the curve satisfies that equation. Just like DH has a generator number `G`, ECC has a **generator point G**, a specific point on the curve that everyone agrees on. It's one particular valid point on the curve, chosen such that repeatedly adding it to itself cycles through all (or most) of the valid points in the group before returning to the "point at infinity."
 
 - In DH, the generator `G` is an integer, and the core operation is exponentiation modulo `p`, written as $G^a \mod p$.
 - In ECC, the generator `G` is a point on the elliptic curve, and the core operation is scalar multiplication, written as `aG`.
@@ -89,7 +97,7 @@ Each valid `(x, y)` point on the curve satisfies that equation. Just like DH has
 To make this clearer:
 
 **In DH**, all operations take place in a finite field of integers.
-For example, if Alice and Bob agree on `G = 2` and a modulus `p = 5`, and Alice’s private key is `a = 3`, her public key will be:
+For example, if Alice and Bob agree on `G = 2` and a modulus `p = 5`, and Alice's private key is `a = 3`, her public key will be:
 
 ```math
 2^3 \mod 5 = 8 \mod 5 = 3
@@ -97,7 +105,7 @@ For example, if Alice and Bob agree on `G = 2` and a modulus `p = 5`, and Alice�
 
 This involves multiplying 2 by itself repeatedly under the modulus (2 * 2 * 2), which is why we say DH uses multiplication modulo or exponentiation modulo.
 
-**In Elliptic Curve Cryptography**, `G` is a point on the curve instead of an integer. When we compute `aG`, we’re adding the point `G` to itself `a` times on the curve.
+**In Elliptic Curve Cryptography**, `G` is a point on the curve instead of an integer. When we compute `aG`, we're adding the point `G` to itself `a` times on the curve.
 For instance, if `a = 4`:
 
 ```math
@@ -111,9 +119,9 @@ The hard problem behind each system is slightly different:
 - **In DH**: given `G`, `p`, and $G^a \mod p$, find `a`.
 - **In ECC**: given `G` and $T = aG$, find `a`.
 
-Finding `a` from `aG` is extremely hard. That’s the **Elliptic Curve Discrete Logarithm Problem**, and it’s why ECC is secure with much smaller key sizes. 256 bits of ECC security equals roughly 3072-bit DH security.
+Finding `a` from `aG` is extremely hard. That's the **Elliptic Curve Discrete Logarithm Problem**, and it's why ECC is secure with much smaller key sizes. 256 bits of ECC security equals roughly 3072-bit DH security.
 
-This efficiency is why it’s used across blockchains.
+This efficiency is why it's used across blockchains.
 
 ## ECC Parameters
 
@@ -133,7 +141,7 @@ Examples of standard curves:
 ## Elliptic Curve Diffie-Hellman (ECDH)
 
 ECDH follows the same pattern as DH but uses curve points instead of integers.
-j
+
 1. Each party picks a private scalar (`da`, `db`) and multiplies it by the generator point to get their public key ($Qa = da * G$, $Qb = db * G$).
 2. They exchange public keys and compute the shared secret:
 
@@ -145,7 +153,7 @@ Both get the same result. The X-coordinate of that shared point becomes the shar
 
 ## Elliptic Curve Digital Signature Algorithm (ECDSA)
 
-Let’s take a look at this scenario:
+Let's take a look at this scenario:
 
 If Party A sends a message to Party B that is encrypted with a shared secret key, and after some time Party A forgets that they sent it and denies they ever sent a message (claiming Party B signed the message themselves since they have the shared secret too), how does Party B prove that Party A actually sent the message?
 
@@ -174,14 +182,14 @@ The verification is successful if `R'.x == r mod n`.
 
 ## How This Connects to Smart Wallets
 
-In the EVM, **secp256k1** powers signature verification. That’s how `ECDSA.recover` (ecrecover) works; it recovers the signer’s address from a signature.
+In the EVM, **secp256k1** powers signature verification. That's how `ECDSA.recover` (ecrecover) works; it recovers the signer's address from a signature.
 
-Modern smart wallets, however, are exploring authentication with **WebAuthn**, which uses **secp256r1** (P-256) for public key cryptography. That’s what drew me into this topic in the first place; I wanted to understand how WebAuthn could validate smart wallet transactions.
+Modern smart wallets, however, are exploring authentication with **WebAuthn**, which uses **secp256r1** (P-256) for public key cryptography. That's what drew me into this topic in the first place; I wanted to understand how WebAuthn could validate smart wallet transactions.
 
-As I go deeper, I plan to write a follow-up exploring P-256 verification on-chain. I’m still not sure how useful it will be after the upcoming EVM Fusaka hard fork, but I’ll find out as I explore further.
+As I go deeper, I plan to write a follow-up exploring P-256 verification on-chain. I'm still not sure how useful it will be after the upcoming EVM Fusaka hard fork, but I'll find out as I explore further.
 
 ## Closing Thoughts
 
-It took me almost a week to get to this point of understanding. I’m still just getting used to writing in this personal style, but I like it; it feels real.
+It took me almost a week to get to this point of understanding. I'm still just getting used to writing in this personal style, but I like it; it feels real.
 
 Cryptography is no longer as intimidating as it once seemed. The key, for me, has been connecting it to why I need it: to build secure, modern smart wallets.

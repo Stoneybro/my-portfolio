@@ -1,89 +1,89 @@
+import { getDocuments } from "outstatic/server";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-export default function WorksPage() {
+type Work = {
+  title: string;
+  slug: string;
+  description?: string;
+  liveUrl?: string;
+  githubUrl?: string;
+  content?: string;
+};
+
+export default async function WorksPage() {
+  const works = getDocuments("works", [
+    "title",
+    "slug",
+    "description",
+    "liveUrl",
+    "githubUrl",
+    "content",
+  ]) as Work[];
+
   return (
     <div className="space-y-8">
       <header className="space-y-2">
-        <h1 className="text-3xl font-semibold tracking-tight text-neutral-100">Selected works</h1>
-        <p className="text-neutral-400">A selection of projects experimenting with Ethereum’s evolving standards, Web3 infrastructure, embedded wallets, and account abstraction while testing ideas for building scalable Web3 applications.</p>
+        <h1 className="text-3xl font-semibold tracking-tight text-neutral-100">
+          Selected works
+        </h1>
+        <p className="text-neutral-400">
+          A selection of projects experimenting with Ethereum&apos;s evolving
+          standards, Web3 infrastructure, embedded wallets, and account
+          abstraction while testing ideas for building scalable Web3
+          applications.
+        </p>
       </header>
 
       <div className="grid gap-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>MANTLEPAY</CardTitle>
-            <CardDescription>
-              A web3 payment platform that treats compliance as a first-class primitive, combining AI-driven intent resolution with on-chain execution to attach verifiable compliance data to every transaction.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2 text-neutral-300">
-            <ul className="list-disc space-y-1 pl-5">
-              <li>AI-driven natural language payment scheduling</li>
-              <li>ERC-4337 smart accounts with embedded compliance metadata</li>
-              <li>Universal compliance schema for verifiable payments</li>
-              <li>Automated recurring payments via Chainlink</li>
-              <li>Gasless transactions with paymaster integration</li>
-            </ul>
-          </CardContent>
-          <CardFooter className="flex gap-3">
-            <Button asChild>
-              <a href="https://usemantlepay.vercel.app" target="_blank" rel="noopener noreferrer">Live project</a>
-            </Button>
-            <Button variant="outline" asChild>
-              <a href="https://github.com/Stoneybro/mantlepay" target="_blank" rel="noopener noreferrer">GitHub</a>
-            </Button>
-          </CardFooter>
-        </Card>
+        {works.map((work) => {
+          const features = (work.content ?? "")
+            .split("\n")
+            .filter((line) => line.startsWith("- "))
+            .map((line) => line.replace(/^- /, ""));
 
-        <Card>
-          <CardHeader>
-            <CardTitle>KAIROS Smart Wallet </CardTitle>
-            <CardDescription>
-              A modular ERC-4337 account abstraction wallet that extends standard smart accounts with task-based staking, penalties, and automated payout Mechanism.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2 text-neutral-300">
-            <ul className="list-disc space-y-1 pl-5">
-              <li>Task staking and penalties.</li>
-              <li>Automated payouts and delayed reward mechanisms.</li>
-              <li>Modular task manager integration.</li>
-              <li>Gasless Transactions</li>
-              <li>Web2-style onboarding with embedded wallets</li>
-            </ul>
-          </CardContent>
-          <CardFooter className="flex gap-3">
-            <Button asChild>
-              <a href="https://useKairos.vercel.app" target="_blank" rel="noopener noreferrer">Live project</a>
-            </Button>
-            <Button variant="outline" asChild>
-              <a href="https://github.com/Stoneybro/kairos-frontend" target="_blank" rel="noopener noreferrer">GitHub</a>
-            </Button>
-          </CardFooter>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>FAUCET FACTORY</CardTitle>
-            <CardDescription>
-              A modular faucet deployment system that streamlines creating, configuring, and managing token faucets for blockchain projects.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2 text-neutral-300">
-            <ul className="list-disc space-y-1 pl-5">
-              <li>Preset faucet policy templates for quick deployment</li>
-              <li>Customizable rules for rate limits, eligibility, and access</li>
-              <li>Minimal proxy clones for gas-efficient faucet creation</li>
-              <li>Upgradeable architecture for long-term flexibility</li>
-              <li>SDK integration for seamless developer adoption</li>
-            </ul>
-          </CardContent>
-          <CardFooter>
-            <Button variant="outline" asChild>
-              <a href="https://github.com/Stoneybro/faucet-factory" target="_blank" rel="noopener noreferrer">GitHub</a>
-            </Button>
-          </CardFooter>
-        </Card>
+          return (
+            <Card key={work.slug}>
+              <CardHeader>
+                <CardTitle>{work.title}</CardTitle>
+                <CardDescription>{work.description}</CardDescription>
+              </CardHeader>
+              {features.length > 0 && (
+                <CardContent className="space-y-2 text-neutral-300">
+                  <ul className="list-disc space-y-1 pl-5">
+                    {features.map((feature, i) => (
+                      <li key={i}>{feature}</li>
+                    ))}
+                  </ul>
+                </CardContent>
+              )}
+              <CardFooter className="flex gap-3">
+                {work.liveUrl && (
+                  <Button asChild>
+                    <a
+                      href={work.liveUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Live project
+                    </a>
+                  </Button>
+                )}
+                {work.githubUrl && (
+                  <Button variant="outline" asChild>
+                    <a
+                      href={work.githubUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      GitHub
+                    </a>
+                  </Button>
+                )}
+              </CardFooter>
+            </Card>
+          );
+        })}
       </div>
     </div>
   );

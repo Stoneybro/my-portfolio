@@ -1,62 +1,49 @@
+---
+title: "Understanding Custom Smart Wallets"
+publishedAt: "2025-09-01T00:00:00.000Z"
+slug: "understanding-custom-smart-wallets"
+excerpt: "Smart wallets unlock automation and flexibility onchain. This guide covers ERC-4337 and how to build smart wallets for any use case."
+status: "published"
+---
 
-**Prerequisite**: You should have a good understanding of <a href="https://ethereum.org/developers/docs/accounts/" target="_blank" rel="noopener noreferrer" style={{textDecoration:"underline"}}>Ethereum accounts</a> and <a href="https://ethereum.org/developers/docs/transactions/" target="_blank" rel="noopener noreferrer" style={{textDecoration:"underline"}}> transactions.</a>
-<div style={{ textAlign: 'center', margin: '2rem 0' }}>
-  <img src="/csm.png" alt="Flow diagram" style={{ maxWidth: '100%' }} />
-</div>
+**Prerequisite**: You should have a good understanding of [Ethereum accounts](https://ethereum.org/developers/docs/accounts/) and [transactions](https://ethereum.org/developers/docs/transactions/).
+
 ## Introduction
-<br />
 
-There are two main types of  accounts on Ethereum: **Externally Owned Accounts (EOAs)** and **Smart Accounts**. They both hold assets and interact with contracts, but they differ fundamentally in a few ways:
-<br />
+There are two main types of accounts on Ethereum: **Externally Owned Accounts (EOAs)** and **Smart Accounts**. They both hold assets and interact with contracts, but they differ fundamentally in a few ways:
+
 **EOAs** are the traditional account type.
 
-They’re created from key pairs and controlled entirely by private keys. With a private key, an EOA can directly initiate and sign transactions.
-<br />
+They're created from key pairs and controlled entirely by private keys. With a private key, an EOA can directly initiate and sign transactions.
+
 **Smart Accounts** on the other hand, are smart contracts deployed on-chain.
 
 Unlike EOAs, they cannot initiate transactions on their own. Instead, they respond to transactions that are sent to them.
-<br />
+
 What makes Smart Accounts powerful is their programmability. Developers can encode rules such as:
 
 - spending limits
-
 - multi-signature approvals
-
 - automated actions
-
-<br />
 
 Smart Accounts replicate everything an EOA can do while adding layers of flexibility and customization through code.
 
-<br />
-
 To standardize how these accounts interact, Ethereum introduced **ERC-4337**, the Account Abstraction standard. This defines how transactions are validated, executed, and paid for.
-
-<br />
 
 **Custom smart wallets** are built on top of these Smart Accounts.
 Just as apps like MetaMask provide an interface for EOAs, custom smart wallets provide an interface for Smart Accounts, tailored to specific use cases or user experiences.
 
-<br />
+In the next section, we'll dive into the mechanics of Smart Accounts under the ERC-4337 standard.
 
-In the next section, we’ll dive into the mechanics of Smart Accounts under the ERC-4337 standard.
-
-<br />
 ---
-
-<br />
 
 ## Core Mechanics
 
 The ERC-4337 Account Abstraction standard is the foundation of modern smart wallets. It defines how smart accounts process transactions without relying on traditional externally owned accounts (EOAs). To understand how these wallets work, we first need to cover some concepts.
 
-
 ### Key Concepts
-<br />
+
 **UserOperations (UserOps)**: EOAs send transactions that specify a recipient, value, and optional data. Smart accounts instead send UserOperations, a higher-level request format defined by ERC-4337. A UserOp contains similar fields but adds flexibility, such as batching multiple calls into one submission and alternative forms of gas payment.
-
-<br />
-
 
 ```json
 //EOA transactions
@@ -87,35 +74,21 @@ The ERC-4337 Account Abstraction standard is the foundation of modern smart wall
 }
 ```
 
-<br />
-
-**Bundlers**: Unlike EOAs, UserOps aren't sent directly to the blockchain. Instead, they go to a bundler, a specialized node service. Bundlers collect many UserOps, bundle them into a transaction, and submit them to the EntryPoint contract. 
-
-<br />
+**Bundlers**: Unlike EOAs, UserOps aren't sent directly to the blockchain. Instead, they go to a bundler, a specialized node service. Bundlers collect many UserOps, bundle them into a transaction, and submit them to the EntryPoint contract.
 
 **EntryPoint**: The EntryPoint is a shared, secure on-chain contract used by all ERC-4337 smart accounts. It validates UserOps, executes them, and handles gas accounting. Think of it as the universal router for all smart wallet activity.
 
-<br />
-
-**Paymasters**: Paymasters allow someone else (like a dApp or a service) to pay gas on behalf of the user. This is how "gasless transactions" work—users interact without holding ETH, while the paymaster covers fees under certain rules.
-
-<br />
-<br />
+**Paymasters**: Paymasters allow someone else (like a dApp or a service) to pay gas on behalf of the user. This is how "gasless transactions" work — users interact without holding ETH, while the paymaster covers fees under certain rules.
 
 ---
-
-<br />
 
 ## Anatomy of a Smart Account
 
 A typical smart account implements three core functions:
 
-
 ### 1. ValidateUserOp
 
 It ensures that a submitted UserOperation is valid. The developer decides what "valid" means, it could be a simple check recovering an ECDSA signature recovery or it could be a more advanced check that may require multiple signatures, biometrics and social recovery.
-
-<br />
 
 ```solidity
 function validateUserOp(
@@ -123,15 +96,11 @@ function validateUserOp(
     bytes32 userOpHash,
     uint256 missingAccountFunds
 ) external returns (uint256 validationData) {
-    // This is a very simple check to see if the person sending user operations
-    // is the owner of the smart account.
-
     bytes32 hash = userOpHash.toEthSignedMessageHash();
     address recovered = hash.recover(userOp.signature);
     
     require(recovered == owner, "Invalid signature");
     
-    // Pay prefund if needed
     if (missingAccountFunds > 0) {
         (bool success,) = payable(msg.sender).call{
             value: missingAccountFunds
@@ -143,23 +112,15 @@ function validateUserOp(
 }
 ```
 
-<br />
-
 ### 2. Execute
 
 It carries out the userOperation once validation passes. It takes the following parameters:
-
-<br />
 
 - `to`: the destination address
 - `value`: the amount of ETH to send
 - `calldata`: the function call or data payload to execute
 
-<br />
-
 This function allows the smart account to transfer ETH, interact with other contracts, or perform custom logic defined by the account developer.
-
-<br />
 
 ```solidity
 function execute(
@@ -174,127 +135,74 @@ function execute(
 }
 ```
 
-<br />
-<br />
-
 ### 3. PayPrefund
 
 Sometimes built into validation logic, it ensures that EntryPoint has access to gas fees upfront. The EntryPoint requires the smart account (or paymaster) to prefund gas cost (bundler fees for helping to send userOperations from client to EntryPoint). This prevents a malicious user from submitting userOperations when they cannot afford to pay gas fees.
 
-<br />
-<br />
-
 ---
-
-<br />
 
 ## Transaction Flow
 
 The transaction flow in ERC-4337 follows a specific sequence:
 
-<br />
-
 **1. Build & Sign UserOperation**
 
 A frontend (wallet client/smart wallet) builds a UserOperation and the user signs it.
 
-<br />
-
 **2. Send to Bundler**
 
-The UserOperation is sent by the client to a bundler, which collects UserOps and submits them to the EntryPoint contract
-
-<br />
+The UserOperation is sent by the client to a bundler, which collects UserOps and submits them to the EntryPoint contract.
 
 **3. Validation**
 
-The EntryPoint calls the smart account's `validateUserOp`. If valid, it calls `execute`
-
-<br />
+The EntryPoint calls the smart account's `validateUserOp`. If valid, it calls `execute`.
 
 **4. Gas Settlement**
 
-The EntryPoint settles gas fees: either from the account's prefunds or through a paymaster that sponsors the transaction
-
-<br />
+The EntryPoint settles gas fees: either from the account's prefunds or through a paymaster that sponsors the transaction.
 
 **5. Bundler Reimbursement**
 
-The bundler is reimbursed for including the userOperation
-
-<br />
-
-Here's a visual representation of the flow:
-
-<br />
-
-<div style={{ textAlign: 'center', margin: '2rem 0' }}>
-  <img src="/txflow.png" alt="Flow diagram" style={{ maxWidth: '100%' }} />
-</div>
-<br />
+The bundler is reimbursed for including the userOperation.
 
 ---
-
-<br />
 
 ## Smart Wallets
 
 A smart wallet is the user-facing client layer that lets people interact with smart accounts. Its main responsibilities are to:
 
 - Build UserOperations
-
-- Sign them with the account’s key logic
-
+- Sign them with the account's key logic
 - Send them to bundlers for execution through the EntryPoint
-<br />
+
 There are two broad categories of smart wallets:
-<br />
+
 **General-purpose smart wallets**
-These are designed to serve many different use cases, much like MetaMask does for EOAs. Examples include Coinbase Smart Wallet or Alchemy’s Smart Wallet. They provide a familiar, flexible interface but are not deeply specialized.
-<br />
+These are designed to serve many different use cases, much like MetaMask does for EOAs. Examples include Coinbase Smart Wallet or Alchemy's Smart Wallet. They provide a familiar, flexible interface but are not deeply specialized.
+
 **Custom smart wallets**
 These go beyond the basics by tailoring smart account behavior to specific needs. For instance, a custom wallet could enforce parental spending limits, manage shared team funds with built-in rules, or optimize gas for gaming transactions.
-<br />
 
 Two libraries currently simplify building custom smart wallets:
 
-<br />
-
 - **viem**: Provides the `toSmartAccount` utility, which converts a custom account smart contract into a standard object that follows ERC-4337 flows
-
 - **Permissionless.js** (pimlico): Provides the `createSmartAccountClient` utility that takes the standard object gotten from viem and uses it to create a specialized smart account client. It configures bundlers, paymasters and signing out of the box
 
-<br />
-<br />
-
 ---
-
-<br />
 
 ## Use Cases for Custom Smart Wallets
 
 Now that we understand how smart accounts work under ERC-4337, the real question is: what makes custom smart wallets worth building? Their value comes from programmability.
 
-<br />
-
 Unlike EOAs, which are limited to sending ETH or signing transactions, custom smart wallets can enforce rules, automate flows, and adapt to specific needs.
-
-<br />
-<br />
 
 ### Personal Automation
 
 Smart wallets can automate financial routines in ways EOAs never could.
 
-<br />
-
 - **Recurring Payments**: Subscriptions (Netflix, SaaS, donations) can be set to auto-renew directly from the wallet
-
 - **Spending Limits**: Parents can configure wallets with daily/weekly caps for children
-
 - **Gasless Transactions**: With paymasters, users interact with apps without needing ETH — useful for onboarding new crypto users
-
-<br />
 
 ```solidity
 // Example: Spending limit implementation
@@ -303,13 +211,11 @@ mapping(address => uint256) public spentToday;
 mapping(address => uint256) public lastResetTime;
 
 function execute(address to, uint256 value, bytes calldata data) external {
-    // Reset daily spending if 24 hours passed
     if (block.timestamp >= lastResetTime[msg.sender] + 1 days) {
         spentToday[msg.sender] = 0;
         lastResetTime[msg.sender] = block.timestamp;
     }
     
-    // Check spending limit
     require(
         spentToday[msg.sender] + value <= dailyLimit[msg.sender],
         "Daily limit exceeded"
@@ -317,32 +223,18 @@ function execute(address to, uint256 value, bytes calldata data) external {
     
     spentToday[msg.sender] += value;
     
-    // Execute transaction
     (bool success,) = to.call{value: value}(data);
     require(success);
 }
 ```
 
-<br />
-
-**Example**: A gamer plays a blockchain game where every in-game action requires a transaction. With a custom wallet, the wallet batches all actions into one transaction per session, while a paymaster covers the gas.
-
-<br />
-<br />
-
 ### Team & Collaboration
 
 Custom wallets allow teams and groups to manage shared assets with built-in accountability.
 
-<br />
-
 - **Task-Based Payments**: Contributors can be automatically paid when a task is completed
-
-- **DAO Treasuries**: Multi-sig logic can be extended to role-based approvals (e.g., marketing wallet, dev wallet, ops wallet)
-
+- **DAO Treasuries**: Multi-sig logic can be extended to role-based approvals
 - **Escrowed Budgets**: Funds can be unlocked gradually as milestones are reached
-
-<br />
 
 ```solidity
 // Example: Milestone-based treasury
@@ -371,26 +263,13 @@ function claimMilestone(uint256 milestoneId) external {
 }
 ```
 
-<br />
-
-**Example**: A startup treasury wallet automatically releases developer salaries every two weeks, but only if milestones are confirmed by a project manager account.
-
-<br />
-<br />
-
 ### DeFi Integration
 
 DeFi users benefit from the ability to batch, sequence, and secure transactions.
 
-<br />
-
 - **One-Click Actions**: Instead of 4–5 separate approvals and swaps, a single UserOperation can deposit into a vault, stake LP tokens, and set up auto-harvesting
-
-- **Auto-Rebalancing**: Wallets can enforce portfolio allocations, selling/buying assets if balances drift too far
-
+- **Auto-Rebalancing**: Wallets can enforce portfolio allocations
 - **Gas Efficiency**: Bundling multiple operations into one reduces fees
-
-<br />
 
 ```solidity
 // Example: Batched DeFi operations
@@ -412,39 +291,19 @@ struct Call {
 }
 ```
 
-<br />
-
-**Example**: A yield farmer deposits USDC, swaps half into ETH, provides liquidity, and stakes LP tokens—all triggered by one UserOperation.
-
-<br />
-<br />
-
 ---
-
-<br />
 
 ## Building a Custom Smart Wallet
 
 Now that we understand how smart accounts work under ERC-4337, let's look at how to actually build a custom smart wallet. A custom wallet combines three layers:
 
-<br />
-
 1. **Smart Account Contract** (on-chain logic)
 2. **Account Wrapper** (client-side translation with Viem)
 3. **Smart Account Client** (bundler/paymaster integration with Permissionless.js)
 
-<br />
-
-Let's break this down step by step.
-
-<br />
-<br />
-
 ### Step 1: Smart Account Contract
 
 The foundation is the contract itself. A minimal smart account only needs the three core functions (`validateUserOp`, `execute`, and prefunding logic), but this is also where you add your own rules.
-
-<br />
 
 ```solidity
 // SPDX-License-Identifier: MIT
@@ -469,11 +328,9 @@ contract CustomSmartAccount is IAccount {
     ) external override returns (uint256) {
         require(msg.sender == address(entryPoint), "Only EntryPoint");
         
-        // Validate signature
         bytes32 hash = userOpHash.toEthSignedMessageHash();
         require(hash.recover(userOp.signature) == owner, "Invalid sig");
         
-        // Pay prefund
         if (missingAccountFunds > 0) {
             (bool success,) = payable(msg.sender).call{
                 value: missingAccountFunds
@@ -498,34 +355,9 @@ contract CustomSmartAccount is IAccount {
 }
 ```
 
-<br />
-
-For example:
-
-<br />
-
-- You can keep validation simple by only checking an ECDSA signature
-
-- You can make it more advanced with multisig checks, social recovery, or time-based restrictions
-
-- You can design the whole contract for a specific use case like gaming, team spending, or delayed execution
-
-<br />
-
-This is where the real power of custom wallets lies — they are programmable accounts.
-
-<br />
-<br />
-
 ### Step 2: Wrapping with Viem
 
-Once your account contract is deployed, the frontend needs to understand it as a proper ERC-4337 smart account. This is where Viem helps.
-
-<br />
-
-Viem provides a `toSmartAccount` utility that takes in your contract's address, signing logic, and encoding logic and outputs a standard smart account object.
-
-<br />
+Once your account contract is deployed, the frontend needs to understand it as a proper ERC-4337 smart account. Viem provides a `toSmartAccount` utility that takes in your contract's address, signing logic, and encoding logic and outputs a standard smart account object.
 
 ```typescript
 import { toSmartAccount } from 'viem/account-abstraction'
@@ -542,7 +374,6 @@ const smartAccount = await toSmartAccount({
   address: '0x...', // Your deployed smart account address
   
   async encodeCalls(calls) {
-    // Encode the execute function call
     return encodeFunctionData({
       abi: smartAccountAbi,
       functionName: 'execute',
@@ -551,7 +382,6 @@ const smartAccount = await toSmartAccount({
   },
   
   async getFactoryArgs() {
-    // Return factory deployment args if account not deployed
     return {
       factory: '0x...',
       factoryData: '0x...'
@@ -559,40 +389,19 @@ const smartAccount = await toSmartAccount({
   },
   
   async sign({ hash }) {
-    // Sign the userOp hash
     return owner.sign({ hash })
   }
 })
 ```
 
-<br />
-
-In practice, this means you configure:
-
-<br />
-
-- How to sign UserOps
-- How to encode contract calls into calldata for `execute()`
-- Metadata like address and public key
-
-<br />
-
-This converts your contract into a standard `SmartAccount` object that follows ERC-4337 flows.
-
-<br />
-<br />
-
 ### Step 3: Creating the Client with permissionless.js
 
-The next step is turning that smart account object into a working wallet client. Pimlico's `permissionless.js` library does this with its `createSmartAccountClient` function.
-
-<br />
+Pimlico's `permissionless.js` library turns that smart account object into a working wallet client with its `createSmartAccountClient` function.
 
 ```typescript
 import { createSmartAccountClient } from 'permissionless'
 import { createPimlicoClient } from 'permissionless/clients/pimlico'
 
-// Create bundler client
 const bundlerClient = createPimlicoClient({
   transport: http('https://api.pimlico.io/v2/sepolia/rpc?apikey=...'),
   entryPoint: {
@@ -601,7 +410,6 @@ const bundlerClient = createPimlicoClient({
   },
 })
 
-// Create smart account client
 const smartAccountClient = createSmartAccountClient({
   account: smartAccount,
   chain: sepolia,
@@ -615,31 +423,11 @@ const smartAccountClient = createSmartAccountClient({
 })
 ```
 
-<br />
-
-This client wires up everything needed to send UserOperations:
-
-<br />
-
-- Configuring bundlers and entry points
-- Handling paymasters for gas sponsorship
-- Managing the signing and sending lifecycle
-
-<br />
-
-Once you have this client, your dApp can send transactions through your custom smart account.
-
-<br />
-<br />
-
 ### Step 4: Wiring it to the Frontend
 
 Finally, the wallet is exposed through your dApp's frontend. Instead of sending raw Ethereum transactions, your UI now builds UserOperations.
 
-<br />
-
 ```typescript
-// Example: Send ETH through smart account
 async function sendTransaction() {
   const txHash = await smartAccountClient.sendTransaction({
     to: '0x...',
@@ -647,17 +435,11 @@ async function sendTransaction() {
     data: '0x'
   })
   
-  console.log('UserOperation hash:', txHash)
-  
-  // Wait for transaction to be mined
   const receipt = await smartAccountClient.waitForUserOperationReceipt({
     hash: txHash
   })
-  
-  console.log('Transaction receipt:', receipt)
 }
 
-// Example: Batch multiple operations
 async function batchOperations() {
   const txHash = await smartAccountClient.sendTransactions({
     transactions: [
@@ -679,53 +461,19 @@ async function batchOperations() {
       }
     ]
   })
-  
-  console.log('Batched UserOperation:', txHash)
 }
 ```
 
-<br />
-
-For example, a "Send ETH" button compiles a UserOperation with a `to`, `value`, and optional `calldata`, signs it, and passes it through your smart account client to the bundler.
-
-<br />
-
-At this point, the flow looks like this:
-
-<br />
-
-- **Contract**: Defines rules (programmable account)
-- **Viem**: Converts it into a standard object
-- **Permissionless.js**: Creates a full-featured client
-- **Frontend**: Provides the user interface to build and send UserOps
-
-<br />
-You can check out my
-<a href="https://github.com/Stoneybro/kairos-frontend" target="_blank" rel="noopener noreferrer" style={{textDecoration:"underline"}}>  Live implementation of A Custom Wallet for personal Accountability</a>
-
-<br />
-
-
-
-
-<br />
+You can check out my [live implementation of a Custom Wallet for personal accountability](https://github.com/Stoneybro/kairos-frontend).
 
 ## Conclusion
 
 Custom smart wallets redefine what it means to interact with blockchain. By moving beyond externally owned accounts (EOAs), developers gain full control over how accounts are structured, validated, and extended. ERC-4337 provides the foundation, while libraries like viem and Permissionless.js lower the barrier to experimentation.
 
-<br />
-
 Smart wallets open up new ways to design user-friendly, secure, and specialized experiences.
 
-<br />
-
-We are still early. Today's implementations resemble the early days of MetaMask and EOAs—useful, but limited. As the ecosystem matures, we'll see smart wallets become the default, powering dapps, games, organizations, and financial systems with richer, safer interactions.
-
-<br />
+We are still early. Today's implementations resemble the early days of MetaMask and EOAs — useful, but limited. As the ecosystem matures, we'll see smart wallets become the default, powering dapps, games, organizations, and financial systems with richer, safer interactions.
 
 For developers, this is an open playground. Whether you're building a general-purpose wallet or a highly opinionated one tailored to your product, the tools are in your hands.
-
-<br />
 
 **The future of wallets is programmable.**

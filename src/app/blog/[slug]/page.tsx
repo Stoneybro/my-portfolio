@@ -1,93 +1,93 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { posts } from "../posts";
+import { getDocuments, getDocumentBySlug } from "outstatic/server";
 import { MDXRemote } from "next-mdx-remote/rsc";
-import fs from "node:fs/promises";
-import path from "node:path";
 
-export function generateMetadata({
+type Blog = {
+  title: string;
+  slug: string;
+  publishedAt?: string;
+  excerpt?: string;
+  content?: string;
+};
+
+export async function generateMetadata({
   params,
 }: {
-  params: { slug: string };
-}): Metadata {
-  const post = posts.find((p) => p.slug === params.slug);
-  if (!post) return { title: "Post" };
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const blog = getDocumentBySlug("blogs", slug, ["title", "excerpt"]) as Blog | null;
+  if (!blog) return { title: "Post" };
 
   const baseUrl = "https://stoneybro.dev";
-  const ogImage = `${baseUrl}/${post.image}`;
 
   return {
-    title: post.title,
-    description: post.excerpt,
+    title: blog.title,
+    description: blog.excerpt,
     openGraph: {
-      title: post.title,
-      description: post.excerpt,
-      url: `${baseUrl}/blog/${post.slug}`,
-      images: [
-        {
-          url: ogImage,
-          width: 1200,
-          height: 630,
-          alt: post.title,
-        },
-      ],
+      title: blog.title,
+      description: blog.excerpt,
+      url: `${baseUrl}/blog/${blog.slug}`,
       type: "article",
     },
     twitter: {
       card: "summary_large_image",
-      title: post.title,
-      description: post.excerpt,
-      images: [ogImage],
+      title: blog.title,
+      description: blog.excerpt,
     },
   };
 }
 
-export function generateStaticParams() {
-  return posts.map((p) => ({ slug: p.slug }));
+export async function generateStaticParams() {
+  const blogs = getDocuments("blogs", ["slug"]);
+  return blogs.map((b) => ({ slug: b.slug }));
 }
 
 export default async function BlogPostPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  const post = posts.find((p) => p.slug === params.slug);
-  if (!post) return notFound();
+  const { slug } = await params;
+  const blog = getDocumentBySlug("blogs", slug, [
+    "title",
+    "publishedAt",
+    "excerpt",
+    "content",
+  ]) as Blog | null;
 
-  const source = post.mdxPath
-    ? await fs.readFile(
-        path.join(process.cwd(), "src", "content", "blog", post.mdxPath),
-        "utf8"
-      )
-    : post.content ?? "";
+  if (!blog) return notFound();
 
   return (
-    <article className='space-y-6'>
-      <div className='space-y-4'>
+    <article className="space-y-6">
+      <div className="space-y-4">
         <Link
-          href='/blog'
-          className='text-sm text-neutral-400 hover:text-neutral-200'
+          href="/blog"
+          className="text-sm text-neutral-400 hover:text-neutral-200"
         >
           ← All posts
         </Link>
-        <h1 className='text-4xl font-semibold tracking-tight text-neutral-100 mt-4'>
-          {post.title}
+        <h1 className="text-4xl font-semibold tracking-tight text-neutral-100 mt-4">
+          {blog.title}
         </h1>
-        <div className='flex items-center gap-1 text-sm text-neutral-400'>
-          <span className='text-neutral-700'>•</span>
-          <span>{post.date}</span>
-
-          <span className='flex flex-wrap gap-1'></span>
+        <div className="flex items-center gap-1 text-sm text-neutral-400">
+          <span className="text-neutral-700">•</span>
+          <span>
+            {new Date(blog.publishedAt!).toLocaleDateString("en-US", {
+              month: "short",
+              year: "numeric",
+            })}
+          </span>
         </div>
       </div>
 
-      <div className='prose prose-invert max-w-none'>
+      <div className="prose prose-invert max-w-none">
         <MDXRemote
-          source={source}
+          source={blog.content ?? ""}
           components={{
             a: (props) => (
-              // eslint-disable-next-line jsx-a11y/anchor-has-content
               <a
                 {...props}
                 className={`underline decoration-neutral-600 hover:decoration-neutral-400 ${
