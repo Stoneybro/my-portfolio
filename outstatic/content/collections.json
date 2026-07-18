@@ -4,5 +4,11 @@
     "slug": "blogs",
     "path": "outstatic/content/blogs",
     "parent": null
+  },
+  {
+    "title": "works",
+    "slug": "works",
+    "path": "outstatic/content/works",
+    "parent": null
   }
 ]
